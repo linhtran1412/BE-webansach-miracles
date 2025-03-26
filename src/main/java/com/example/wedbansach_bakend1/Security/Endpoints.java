@@ -4,6 +4,8 @@ package com.example.wedbansach_bakend1.Security;
 public class Endpoints {
     public static final String front_end_host = "http://localhost:3000";
     public static final String[] PUBLIC_GET_ENDPOINS = {
+            "/students",
+            "/students/**",
             "/sach",
             "/sach/**",
             "/hinh-anh",
@@ -14,6 +16,7 @@ public class Endpoints {
     };
 
     public static final String[] PUBLIC_POST_ENDPOINS = {
+            "/students",
             "/tai-khoan/dang-ky",
             "/tai-khoan/dang-nhap",
 
