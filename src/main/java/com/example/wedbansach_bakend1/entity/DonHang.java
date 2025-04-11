@@ -29,6 +29,11 @@ public class DonHang {
     @Column(name = "tong_tien")
     private double tongTien;
 
+    // === ĐÃ THÊM TRƯỜNG TRẠNG THÁI VÀO ĐÂY ===
+    @Column(name = "trang_thai", length = 100) // Thêm cột trạng thái, ví dụ kiểu VARCHAR(100)
+    private String trangThai;
+    // === KẾT THÚC THÊM ===
+
     @OneToMany(mappedBy = "donHang", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ChiTietDonHang> danhSachChiTietDonHang;
 

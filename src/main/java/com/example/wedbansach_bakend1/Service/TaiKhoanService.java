@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.Console;
 import java.util.UUID;
 @Service
 public class TaiKhoanService {
@@ -18,7 +17,7 @@ public class TaiKhoanService {
     private NguoiDungRepository nguoiDungRepository;
 
     @Autowired
-    private EmailSerVice emailService;
+    private EmailService emailService;
 
     public ResponseEntity<?> dangKyNguoiDung(NguoiDung nguoiDung){
         // Kiểm tra tên đăng nhập đã tồn tại chưa?

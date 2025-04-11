@@ -1,4 +1,4 @@
-package com.example.wedbansach_bakend1.conFig;
+package com.example.wedbansach_bakend1.config;
 
 
 import com.example.wedbansach_bakend1.entity.NguoiDung;

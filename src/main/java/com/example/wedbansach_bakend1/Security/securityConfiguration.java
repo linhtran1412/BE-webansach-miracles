@@ -1,14 +1,7 @@
 package com.example.wedbansach_bakend1.Security;
 
-
 import com.example.wedbansach_bakend1.Service.UserService;
 import com.example.wedbansach_bakend1.filter.JwtFilter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,26 +12,24 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-
-
-import java.util.Arrays;
+// import org.springframework.web.cors.CorsConfiguration; // Đã comment out, tốt!
+// import java.util.Arrays; // Đã comment out, tốt!
 
 @Configuration
 public class securityConfiguration {
+
     @Autowired
     private JwtFilter jwtFilter;
+
     @Bean
     public BCryptPasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-
     public DaoAuthenticationProvider authenticationProvider(UserService userService){
         DaoAuthenticationProvider dap = new DaoAuthenticationProvider();
         dap.setUserDetailsService(userService);
@@ -50,28 +41,49 @@ public class securityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(
                 config -> config
-                        .requestMatchers(HttpMethod.GET, Endpoints.PUBLIC_GET_ENDPOINS).permitAll()
-                        .requestMatchers(HttpMethod.DELETE, Endpoints.PUBLIC_GET_ENDPOINS).permitAll()
-                        .requestMatchers(HttpMethod.PUT, Endpoints.PUBLIC_GET_ENDPOINS).permitAll()
-                        .requestMatchers(HttpMethod.POST, Endpoints.PUBLIC_GET_ENDPOINS).permitAll()
-                        .requestMatchers(HttpMethod.GET, Endpoints.ADMIN_GET_ENDPOINS).hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.POST, Endpoints.ADMIN_POST_ENDPOINS).hasAuthority("ADMIN")
-        );
-        http.cors(cors -> {
-            cors.configurationSource(request -> {
-                CorsConfiguration corsConfig = new CorsConfiguration();
-                corsConfig.addAllowedOrigin(Endpoints.front_end_host);
-                corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-                corsConfig.addAllowedHeader("*");
-                return corsConfig;
-            });
-        });
+                        // ----- QUY TẮC ƯU TIÊN TỪ TRÊN XUỐNG -----
+
+                        // 1. LUÔN CHO PHÉP: OPTIONS request (cho CORS)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // 2. CHO PHÉP PUBLIC (permitAll): Không cần đăng nhập
+                        .requestMatchers(HttpMethod.GET, Endpoints.PUBLIC_GET_ENDPOINS).permitAll() // Các endpoint GET public từ Endpoints.java
+                        .requestMatchers(HttpMethod.POST, Endpoints.PUBLIC_POST_ENDPOINS).permitAll() // Các endpoint POST public từ Endpoints.java (bao gồm /dang-ky, /dang-nhap)
+                        .requestMatchers(HttpMethod.GET, "/api/lookup/**").permitAll() // Cho phép lấy danh sách hình thức GH/TT
+
+                        // 3. YÊU CẦU ĐĂNG NHẬP (authenticated): Cho User thường
+                        .requestMatchers("/gio-hang/**").authenticated() // Tất cả API giỏ hàng
+                        .requestMatchers(HttpMethod.GET, "/api/don-hang/my-orders").authenticated() // Xem đơn hàng của tôi
+                        .requestMatchers(HttpMethod.POST, "/api/checkout/place-order").authenticated() // Đặt hàng
+
+                        // 4. YÊU CẦU QUYỀN (hasAuthority): Cho Admin/Staff
+                        .requestMatchers(HttpMethod.GET, Endpoints.ADMIN_GET_ENDPOINS).hasAuthority("ADMIN") // VD: Xem danh sách người dùng
+                        .requestMatchers(HttpMethod.POST, Endpoints.ADMIN_POST_ENDPOINS).hasAuthority("ADMIN") // VD: Thêm sách (có thể đổi thành STAFF sau)
+                        .requestMatchers(HttpMethod.GET, "/api/don-hang/{id}").hasAuthority("ADMIN") // VD: Xem đơn hàng bất kỳ (Admin)
+                        .requestMatchers(HttpMethod.PUT, "/api/don-hang/{id}").hasAnyAuthority("ADMIN", "STAFF") // VD: Cập nhật đơn hàng (Admin/Staff) - Sẽ cần thêm role STAFF
+                        .requestMatchers(HttpMethod.DELETE, "/api/don-hang/{id}").hasAuthority("ADMIN") // VD: Xóa đơn hàng (Admin)
+                        // --> Thêm các quy tắc cho Admin/Staff khác vào đây (TRƯỚC anyRequest) <--
+
+                        // 5. BẮT TẤT CẢ CÒN LẠI (anyRequest - PHẢI ĐẶT CUỐI CÙNG): Yêu cầu đăng nhập
+                        .anyRequest().authenticated()
+
+        ); // <<<---- Đóng ngoặc của config -> config
+
+        // --- Các cấu hình còn lại ---
+        // 6. CORS: Dùng WebConfig.java (giữ nguyên)
+        /* http.cors(...) */
+
+        // 7. JWT Filter: Thêm bộ lọc JWT vào trước bộ lọc username/password
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // 8. Session, HTTP Basic, CSRF: Giữ nguyên cấu hình stateless
         http.sessionManagement((session)->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.httpBasic(Customizer.withDefaults());
         http.csrf(csrf -> csrf.disable());
+
         return http.build();
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

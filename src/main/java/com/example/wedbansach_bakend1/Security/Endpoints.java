@@ -13,13 +13,14 @@ public class Endpoints {
             "/nguoi-dung/search/existsByTenDangNhap",
             "/nguoi-dung/search/existsByEmail",
             "/tai-khoan/kich-hoat",
+            "/don-hang",
     };
 
     public static final String[] PUBLIC_POST_ENDPOINS = {
             "/students",
             "/tai-khoan/dang-ky",
             "/tai-khoan/dang-nhap",
-
+            "/don-hang",
     };
 
     public static final String[] ADMIN_GET_ENDPOINS = {
