@@ -90,7 +90,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         donHang.setHinhThucThanhToan(httt);
         donHang.setTongTienSanPham(tongTienSanPham);
         donHang.setChiPhiGiaoHang(htgh.getChiPhiGiaoHang());
-        donHang.setChiPhiThanhToan(httt.getChiPhiGiaoHang()); // Giữ nguyên vì bạn không sửa tên biến Entity
+        donHang.setChiPhiThanhToan(httt.getChiPhiThanhToan());
         donHang.setTongTien(tongTienSanPham + donHang.getChiPhiGiaoHang() + donHang.getChiPhiThanhToan());
         donHang.setTrangThai("Chờ xử lý");
 

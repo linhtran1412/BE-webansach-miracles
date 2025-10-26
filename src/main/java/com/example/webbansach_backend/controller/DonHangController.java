@@ -346,118 +346,180 @@
 
 
 
+//package com.example.webbansach_backend.controller;
+//
+//import com.example.webbansach_backend.Service.DonHangService;
+//import com.example.webbansach_backend.dao.DonHangRepository;
+//import com.example.webbansach_backend.dao.NguoiDungRepository;
+//import com.example.webbansach_backend.dto.DonHangListDTO;
+//import com.example.webbansach_backend.entity.DonHang;
+//import com.example.webbansach_backend.entity.ThongBao;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.http.HttpStatus;
+//import org.springframework.http.ResponseEntity;
+//import org.springframework.web.bind.annotation.*;
+//
+//import java.util.List;
+//import java.util.Optional;
+//
+//@RestController
+//@RequestMapping("/don-hang")
+//public class DonHangController {
+//
+//    @Autowired
+//    private DonHangRepository donHangRepository;
+//
+//    @Autowired
+//    private NguoiDungRepository nguoiDungRepository;
+//
+//    @Autowired
+//    private DonHangService donHangService;                              // <<<< THÊM
+//
+//    // GET /don-hang (Lấy tất cả đơn hàng - Admin/Staff)
+//    @GetMapping
+//    public ResponseEntity<List<DonHang>> getAllDonHang() {
+//        List<DonHang> list = donHangRepository.findAll();
+//        return ResponseEntity.ok(list);
+//    }
+//
+//    // GET /don-hang/{id} (Lấy đơn hàng theo ID - Admin/Staff)
+//    @GetMapping("/{id}")
+//    public ResponseEntity<?> getDonHangById(@PathVariable Integer id) {
+//        Optional<DonHang> donHangOpt = donHangRepository.findById(id);
+//        if (donHangOpt.isPresent()) {
+//            return ResponseEntity.ok(donHangOpt.get());
+//        } else {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                    .body(new ThongBao("Không tìm thấy đơn hàng ID: " + id));
+//        }
+//    }
+//
+//    // POST /don-hang (Tạo đơn – thường dùng nội bộ service)
+//    @PostMapping
+//    public ResponseEntity<?> createDonHang(@RequestBody DonHang donHang) {
+//        try {
+//            DonHang savedDonHang = donHangRepository.save(donHang);
+//            return new ResponseEntity<>(savedDonHang, HttpStatus.CREATED);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new ThongBao("Lỗi khi tạo đơn hàng: " + e.getMessage()));
+//        }
+//    }
+//
+//    // PUT /don-hang/{id} (Cập nhật trạng thái - Admin/Staff)
+//    @PutMapping("/{id}")
+//    public ResponseEntity<?> updateDonHang(@PathVariable Integer id, @RequestBody DonHang donHangMoi) {
+//        Optional<DonHang> donHangOpt = donHangRepository.findById(id);
+//        if (donHangOpt.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                    .body(new ThongBao("Không tìm thấy đơn hàng ID: " + id + " để cập nhật."));
+//        }
+//
+//        DonHang donHang = donHangOpt.get();
+//        if (donHangMoi.getTrangThai() == null) {
+//            return ResponseEntity.badRequest()
+//                    .body(new ThongBao("Vui lòng cung cấp 'trangThai' mới trong body request."));
+//        }
+//
+//        try {
+//            donHang.setTrangThai(donHangMoi.getTrangThai());
+//            DonHang updatedDonHang = donHangRepository.save(donHang);
+//            return ResponseEntity.ok(updatedDonHang);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new ThongBao("Lỗi khi cập nhật đơn hàng: " + e.getMessage()));
+//        }
+//    }
+//
+//    // DELETE /don-hang/{id} (Xoá đơn - Admin)
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<?> deleteDonHang(@PathVariable Integer id) {
+//        if (!donHangRepository.existsById(id)) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                    .body(new ThongBao("Không tìm thấy đơn hàng ID: " + id + " để xóa."));
+//        }
+//        try {
+//            donHangRepository.deleteById(id);
+//            return ResponseEntity.noContent().build();
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new ThongBao("Lỗi hệ thống khi xóa đơn hàng ID: " + id));
+//        }
+//    }
+//
+//    // ===== /don-hang/my-orders (User xem đơn của mình) – TRẢ DTO, KHÔNG TRẢ ENTITY =====
+//    @GetMapping("/my-orders")
+//    public ResponseEntity<?> getMyOrders() {
+//        try {
+//            List<DonHangListDTO> list = donHangService.getMyOrders();   // lấy theo user đăng nhập & map DTO
+//            return ResponseEntity.ok(list);
+//        } catch (RuntimeException e) { // chưa đăng nhập, user không tồn tại, ...
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ThongBao(e.getMessage()));
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new ThongBao("Lỗi khi lấy lịch sử đơn hàng: " + e.getMessage()));
+//        }
+//    }
+//
+//    // >>> trang chi tiết đơn hàng của chính user (trả DTO)
+//    @GetMapping("/{id}/my-detail")
+//    public ResponseEntity<?> getMyOrderDetail(@PathVariable int id) {
+//        try {
+//            return ResponseEntity.ok(donHangService.getMyOrderDetail(id));
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.badRequest().body(new ThongBao(e.getMessage()));
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(new ThongBao("Lỗi khi lấy chi tiết đơn hàng: " + e.getMessage()));
+//        }
+//    }
+//
+//}
+
+
+
 package com.example.webbansach_backend.controller;
 
-import com.example.webbansach_backend.Service.DonHangService;           // <<<< THÊM
-import com.example.webbansach_backend.dao.DonHangRepository;
-import com.example.webbansach_backend.dao.NguoiDungRepository;
-import com.example.webbansach_backend.dto.DonHangListDTO;              // <<<< THÊM
-import com.example.webbansach_backend.entity.DonHang;
+import com.example.webbansach_backend.Service.DonHangService;
+import com.example.webbansach_backend.dto.DonHangListDTO;
 import com.example.webbansach_backend.entity.ThongBao;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/don-hang")
 public class DonHangController {
 
     @Autowired
-    private DonHangRepository donHangRepository;
+    private DonHangService donHangService;
 
-    @Autowired
-    private NguoiDungRepository nguoiDungRepository;
-
-    @Autowired
-    private DonHangService donHangService;                              // <<<< THÊM
-
-    // GET /don-hang (Lấy tất cả đơn hàng - Admin/Staff)
-    @GetMapping
-    public ResponseEntity<List<DonHang>> getAllDonHang() {
-        List<DonHang> list = donHangRepository.findAll();
-        return ResponseEntity.ok(list);
-    }
-
-    // GET /don-hang/{id} (Lấy đơn hàng theo ID - Admin/Staff)
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getDonHangById(@PathVariable Integer id) {
-        Optional<DonHang> donHangOpt = donHangRepository.findById(id);
-        if (donHangOpt.isPresent()) {
-            return ResponseEntity.ok(donHangOpt.get());
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ThongBao("Không tìm thấy đơn hàng ID: " + id));
-        }
-    }
-
-    // POST /don-hang (Tạo đơn – thường dùng nội bộ service)
-    @PostMapping
-    public ResponseEntity<?> createDonHang(@RequestBody DonHang donHang) {
-        try {
-            DonHang savedDonHang = donHangRepository.save(donHang);
-            return new ResponseEntity<>(savedDonHang, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ThongBao("Lỗi khi tạo đơn hàng: " + e.getMessage()));
-        }
-    }
-
-    // PUT /don-hang/{id} (Cập nhật trạng thái - Admin/Staff)
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateDonHang(@PathVariable Integer id, @RequestBody DonHang donHangMoi) {
-        Optional<DonHang> donHangOpt = donHangRepository.findById(id);
-        if (donHangOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ThongBao("Không tìm thấy đơn hàng ID: " + id + " để cập nhật."));
-        }
-
-        DonHang donHang = donHangOpt.get();
-        if (donHangMoi.getTrangThai() == null) {
-            return ResponseEntity.badRequest()
-                    .body(new ThongBao("Vui lòng cung cấp 'trangThai' mới trong body request."));
-        }
-
-        try {
-            donHang.setTrangThai(donHangMoi.getTrangThai());
-            DonHang updatedDonHang = donHangRepository.save(donHang);
-            return ResponseEntity.ok(updatedDonHang);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ThongBao("Lỗi khi cập nhật đơn hàng: " + e.getMessage()));
-        }
-    }
-
-    // DELETE /don-hang/{id} (Xoá đơn - Admin)
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteDonHang(@PathVariable Integer id) {
-        if (!donHangRepository.existsById(id)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ThongBao("Không tìm thấy đơn hàng ID: " + id + " để xóa."));
-        }
-        try {
-            donHangRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ThongBao("Lỗi hệ thống khi xóa đơn hàng ID: " + id));
-        }
-    }
-
-    // ===== /don-hang/my-orders (User xem đơn của mình) – TRẢ DTO, KHÔNG TRẢ ENTITY =====
+    // User: lịch sử đơn của chính mình
     @GetMapping("/my-orders")
     public ResponseEntity<?> getMyOrders() {
         try {
-            List<DonHangListDTO> list = donHangService.getMyOrders();   // lấy theo user đăng nhập & map DTO
+            List<DonHangListDTO> list = donHangService.getMyOrders();
             return ResponseEntity.ok(list);
-        } catch (RuntimeException e) { // chưa đăng nhập, user không tồn tại, ...
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ThongBao(e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ThongBao("Lỗi khi lấy lịch sử đơn hàng: " + e.getMessage()));
+        }
+    }
+
+    // User: chi tiết 1 đơn của chính mình
+    @GetMapping("/{id}/my-detail")
+    public ResponseEntity<?> getMyOrderDetail(@PathVariable int id) {
+        try {
+            return ResponseEntity.ok(donHangService.getMyOrderDetail(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ThongBao(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ThongBao("Lỗi khi lấy chi tiết đơn hàng: " + e.getMessage()));
         }
     }
 }
